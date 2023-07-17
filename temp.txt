@@ -1,0 +1,16 @@
+"Tonight"
+69
+"Haze"
+null
+"Monday Night"
+71
+"Haze then Mostly Clear"
+null
+"Tuesday Night"
+71
+"Chance Showers And Thunderstorms then Mostly Clear"
+30
+"Wednesday Night"
+73
+"Chance Showers And Thunderstorms"
+40
