@@ -22,15 +22,15 @@ get_data () {
 }
 
 parse_temp () {
-	awk 'NR==2 || ((NR/2) % 2 == 1)' "../andnowtheweather.txt" > "../txt/temperature.txt"
+	awk 'NR==2 || ((NR/2) % 2 == 1)' "../txt/andnowtheweather.txt" > "../txt/temperature.txt"
 }
 
 parse_forecast () {
-	awk 'NR==3 || ((NR+1) % 4 == 0)' "../andnowtheweather.txt" > "../txt/forecast.txt"
+	awk 'NR==3 || ((NR+1) % 4 == 0)' "../txt/andnowtheweather.txt" > "../txt/forecast.txt"
 }
 
 parse_chance_rain () {
-	awk 'NR==4 || (NR % 4 == 0)' "../andnowtheweather.txt" > "../txt/chance.txt"
+	awk 'NR==4 || (NR % 4 == 0)' "../txt/andnowtheweather.txt" > "../txt/chance.txt"
 }
 
 get_data
