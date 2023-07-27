@@ -2,5 +2,5 @@
 
 while true;
 	do ~/weather/bin/weather.sh;
-	sleep 1800;
+	sleep 900;
 done
