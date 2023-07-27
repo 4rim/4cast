@@ -31,10 +31,10 @@ struct panel {
 	WINDOW *nest;
 } typedef PANEL;
 
-const char *temp_path = "../temperature.txt";
-const char *fc_path = "../forecast.txt";
-const char *chance_path = "../chance.txt";
-const char *maxmin_path = "../maxmin.txt";
+const char *temp_path = "../txt/temperature.txt";
+const char *fc_path = "../txt/forecast.txt";
+const char *chance_path = "../txt/chance.txt";
+const char *maxmin_path = "../txt/maxmin.txt";
 
 WINDOW *GRID[3];
 
