@@ -26,6 +26,11 @@ struct entry dict[NUMWEEK] = {
 	{ "Sat", 6 },
 };
 
+struct panel {
+	WINDOW *main;
+	WINDOW *nest;
+} typedef PANEL;
+
 const char *temp_path = "../temperature.txt";
 const char *fc_path = "../forecast.txt";
 const char *chance_path = "../chance.txt";
@@ -40,15 +45,15 @@ int max[3];
 int min[3];
 
 /* TODO: Should check for user's terminal size before running.
- * fill_fc should use malloc to dynamically deal with strncmp. The way it is
- * right now, it WILL break with longer forecasts. Please fix this!!!!
+ * fill_fc should use malloc to dynamically deal with strncmp. 
  * Also for forecasts (longer strings) you should have a smaller window inside
- * so the text can wrap properly.
+ * so the text can wrap properly. Window within window.
  * Use watch() command to check on txt files?
  * Better practice with threads. Might need a lock on the files. Research into
  * this.
  *
- * Implement highs/lows and ASCII art.
+ * Implement ASCII art, somehow. Look at wego's source code for ref.
+ * Add wind direction, color, ...
  */
 
 int retrieve_day(time_t result);
@@ -119,7 +124,6 @@ int main()
 	refresh();
 	create_grid();
 	
-
 	for (int i = 0; i < 3; num_day++, i++) {
 		if (i == 0) { // for first square on grid aka current day
 			mvwprintw(GRID[i], SQ_HEIGHT/6, SQ_WIDTH/6, "Today");
@@ -174,6 +178,7 @@ void create_grid(void)
 {
 	int i;
 	int starty = 3, startx;
+	int smally = 4, smallx;
 
 	for (i = 0; i < 3; i++) {
 		startx = i * SQ_WIDTH;
