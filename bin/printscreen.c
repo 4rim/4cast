@@ -26,11 +26,6 @@ struct entry dict[NUMWEEK] = {
 	{ "Sat", 6 },
 };
 
-struct panel {
-	WINDOW *main;
-	WINDOW *nest;
-} typedef PANEL;
-
 const char *temp_path = "../txt/temperature.txt";
 const char *fc_path = "../txt/forecast.txt";
 const char *chance_path = "../txt/chance.txt";
@@ -63,7 +58,7 @@ void fill_temp(FILE *f);
 void fill_fc(FILE *f);
 void fill_chance(FILE *f);
 void fill_maxmin(FILE *f);
-float convert_to_cel(int x);
+int convert_to_cel(int x);
 
 void *pthread_init_weather(void *vargp) {
 	FILE *f1, *f2, *f3, *f4;
@@ -101,9 +96,9 @@ int main()
 	time_t res = time(NULL);
 
 	num_day = retrieve_day(res);
-	if (res == -1) {
-		perror("Failure");
-		return -1;
+	if (num_day == -1) {
+		perror("Failure in parsing date.");
+		exit(-1);
 	}
 
 	initscr();
@@ -127,7 +122,7 @@ int main()
 	for (int i = 0; i < 3; num_day++, i++) {
 		if (i == 0) { // for first square on grid aka current day
 			mvwprintw(GRID[i], SQ_HEIGHT/6, SQ_WIDTH/6, "Today");
-			mvwprintw(GRID[i], (SQ_HEIGHT/6) + L_MARGIN, SQ_WIDTH/6, "%dF/%.1fC",
+			mvwprintw(GRID[i], (SQ_HEIGHT/6) + L_MARGIN, SQ_WIDTH/6, "%dF/%dC",
 					temperature[i], convert_to_cel(temperature[i]));
 			mvwprintw(GRID[i], (SQ_HEIGHT/6) + (S_MARGIN * 2), SQ_WIDTH/6,
 					"Chance of rain: %d%%", chance[i]);
@@ -137,8 +132,8 @@ int main()
 					"High: %d, Low: %d", max[i], min[i]);
 		} else {
 			mvwprintw(GRID[i], SQ_HEIGHT/6, SQ_WIDTH / 6, "%s",
-					dict[num_day % (NUMWEEK-1)]);
-			mvwprintw(GRID[i], (SQ_HEIGHT/6) + L_MARGIN, SQ_WIDTH/6, "%dF/%.1fC",
+					dict[num_day % NUMWEEK]);
+			mvwprintw(GRID[i], (SQ_HEIGHT/6) + L_MARGIN, SQ_WIDTH/6, "%dF/%dC",
 					temperature[i], convert_to_cel(temperature[i]));
 			mvwprintw(GRID[i], (SQ_HEIGHT/6) + (S_MARGIN * 2), SQ_WIDTH/6,
 					"Chance of rain: %d%%", chance[i]);
@@ -162,14 +157,13 @@ int retrieve_day(time_t result) {
 	char *day;
 	if(result != (time_t)(-1)) {
 		day = strtok(asctime(gmtime(&result)), " ");
-		for (int i = 0; i < NUMWEEK-1; i++) {
+		for (int i = 0; i < NUMWEEK; i++) {
 			if (strncmp(day, dict[i].name, 2) == 0) {
 				return i;
 			}
 		}
 	} else {
 		perror("Time retrieval issue.");
-		return -1;
 	}
 	return -1;
 }
@@ -178,7 +172,6 @@ void create_grid(void)
 {
 	int i;
 	int starty = 3, startx;
-	int smally = 4, smallx;
 
 	for (i = 0; i < 3; i++) {
 		startx = i * SQ_WIDTH;
@@ -243,6 +236,6 @@ void fill_maxmin(FILE *f) {
 	}
 }
 
-float convert_to_cel(int x) {
-	return (((float) x - 32) / 1.8);
+int convert_to_cel(int x) {
+	return ((x - 32) / 1.8);
 }
