@@ -1,12 +1,12 @@
-"Overnight"
-73
-"Slight Chance Rain Showers"
-20
-"Sunday Night"
-71
-"Partly Cloudy"
+"Today"
+80
+"Sunny"
 null
-"Monday Night"
-68
-"Slight Chance Showers And Thunderstorms then Partly Cloudy"
-20
+"Saturday"
+83
+"Sunny"
+null
+"Sunday"
+89
+"Sunny"
+null

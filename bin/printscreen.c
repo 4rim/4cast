@@ -43,7 +43,6 @@ int min[3];
  * fill_fc should use malloc to dynamically deal with strncmp. 
  * Also for forecasts (longer strings) you should have a smaller window inside
  * so the text can wrap properly. Window within window.
- * Use watch() command to check on txt files?
  * Better practice with threads. Might need a lock on the files. Research into
  * this.
  *

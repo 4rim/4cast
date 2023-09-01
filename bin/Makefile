@@ -6,3 +6,6 @@ printscreen: printscreen.o
 
 printscreen.o: printscreen.c
 	${CC} -o $@ -c $<
+
+clean:
+	rm -rf *.o
