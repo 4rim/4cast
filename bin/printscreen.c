@@ -1,3 +1,5 @@
+#define NDEBUG
+
 #include <ncurses.h>
 #include <time.h>
 #include <string.h>
@@ -50,6 +52,7 @@ int min[3];
  * Add wind direction, color, ...
  */
 
+int check_file(FILE *f);
 int retrieve_day(time_t result);
 void create_grid(void);
 void destroy_grid(void);
@@ -62,9 +65,13 @@ int convert_to_cel(int x);
 void *pthread_init_weather(void *vargp) {
 	FILE *f1, *f2, *f3, *f4;
 	f1 = fopen(temp_path, "r");
+	check_file(f1);
 	f2 = fopen(fc_path, "r");
+	check_file(f2);
 	f3 = fopen(chance_path, "r");
+	check_file(f3);
 	f4 = fopen(maxmin_path, "r");
+	check_file(f4);
 
 	for(;;)	{
 		fill_temp(f1);
@@ -150,6 +157,14 @@ int main()
 	destroy_grid();
 	endwin();
 	return 0;
+}
+
+int check_file(FILE *stream) {
+	if (!stream) {
+		perror("Error: Unable to open file.");
+		return EXIT_FAILURE;
+	}
+	return EXIT_SUCCESS;
 }
 
 int retrieve_day(time_t result) {
