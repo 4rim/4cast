@@ -156,6 +156,7 @@ int main()
 	getch(); // program exits when any key is pressed
 	destroy_grid();
 	endwin();
+	pthread_join(thread_id, NULL);
 	return 0;
 }
 
