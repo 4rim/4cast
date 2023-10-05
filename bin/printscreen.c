@@ -40,6 +40,7 @@ char forecast[3][64];
 int chance[3];
 int max[3];
 int min[3];
+int flag = 0;
 
 /* TODO: Should check for user's terminal size before running.
  * fill_fc should use malloc to dynamically deal with strncmp. 
@@ -61,19 +62,25 @@ void fill_fc(FILE *f);
 void fill_chance(FILE *f);
 void fill_maxmin(FILE *f);
 int convert_to_cel(int x);
+int convert_to_fah(int x);
 
 void *pthread_init_weather(void *vargp) {
-	FILE *f1, *f2, *f3, *f4;
-	f1 = fopen(temp_path, "r");
+	pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
+	FILE *f1 = fopen(temp_path, "r");
 	check_file(f1);
-	f2 = fopen(fc_path, "r");
+
+	FILE *f2 = fopen(fc_path, "r");
 	check_file(f2);
-	f3 = fopen(chance_path, "r");
+
+	FILE *f3 = fopen(chance_path, "r");
 	check_file(f3);
-	f4 = fopen(maxmin_path, "r");
+
+	FILE *f4 = fopen(maxmin_path, "r");
 	check_file(f4);
 
-	for(;;)	{
+	while(1) {
+		pthread_mutex_lock(&lock);
 		fill_temp(f1);
 		fill_fc(f2);
 		fill_chance(f3);
@@ -82,7 +89,8 @@ void *pthread_init_weather(void *vargp) {
 		rewind(f2);
 		rewind(f3);
 		rewind(f4);
-		sleep(1);
+		pthread_mutex_unlock(&lock);
+		sleep(10);
 	}
 	
 	fclose(f1);
@@ -135,7 +143,7 @@ int main()
 			mvwprintw(GRID[i], (SQ_HEIGHT/6) + (S_MARGIN * 3), SQ_WIDTH/6,
 					"%s", forecast[i]);
 			mvwprintw(GRID[i], (SQ_HEIGHT/6) + (S_MARGIN * 5), SQ_WIDTH/6,
-					"High: %d, Low: %d", max[i], min[i]);
+					"High: %d, Low: %d", convert_to_fah(max[i]), convert_to_fah(min[i]));
 		} else {
 			mvwprintw(GRID[i], SQ_HEIGHT/6, SQ_WIDTH / 6, "%s",
 					dict[num_day % NUMWEEK]);
@@ -146,18 +154,17 @@ int main()
 			mvwprintw(GRID[i], (SQ_HEIGHT/6) + (S_MARGIN * 3), SQ_WIDTH/6,
 					"%s", forecast[i]);
 			mvwprintw(GRID[i], (SQ_HEIGHT/6) + (S_MARGIN * 5), SQ_WIDTH/6,
-					"High: %d, Low: %d", max[i], min[i]);
+					"High: %d, Low: %d", convert_to_fah(max[i]), convert_to_fah(min[i]));
 		}
 		wrefresh(GRID[i]);
 	}
 
-	
 	refresh();
 	getch(); // program exits when any key is pressed
+	pthread_cancel(thread_id);
+	// pthread_join(thread_id, NULL);
 	destroy_grid();
 	endwin();
-	pthread_join(thread_id, NULL);
-	return 0;
 }
 
 int check_file(FILE *stream) {
@@ -253,4 +260,8 @@ void fill_maxmin(FILE *f) {
 
 int convert_to_cel(int x) {
 	return ((x - 32) / 1.8);
+}
+
+int convert_to_fah(int x) {
+	return ((x * 1.8) + 32);
 }
