@@ -8,7 +8,7 @@
 #include <pthread.h>
 
 #define NUMWEEK 7
-#define SQ_HEIGHT 12
+#define SQ_HEIGHT 18
 #define SQ_WIDTH 30
 #define L_MARGIN 2
 #define S_MARGIN 1.5
@@ -28,12 +28,18 @@ struct entry dict[NUMWEEK] = {
 	{ "Sat", 6 },
 };
 
+struct square {
+	WINDOW* main;
+	WINDOW* sub;
+};
+
 const char *temp_path = "../txt/temperature.txt";
 const char *fc_path = "../txt/forecast.txt";
 const char *chance_path = "../txt/chance.txt";
 const char *maxmin_path = "../txt/maxmin.txt";
 
-WINDOW *GRID[3];
+// WINDOW *GRID[3];
+struct square grid[3];
 
 int temperature[3];
 char forecast[3][64];
@@ -43,14 +49,19 @@ int min[3];
 int flag = 0;
 
 /* TODO: Should check for user's terminal size before running.
+ * Fix formatting/placement of text...
  * fill_fc should use malloc to dynamically deal with strncmp. 
- * Also for forecasts (longer strings) you should have a smaller window inside
- * so the text can wrap properly. Window within window.
- * Better practice with threads. Might need a lock on the files. Research into
- * this.
+ * Do I even need threads? Lol probably not
+ * 
+ * Not this-file-specific, but write some kind of build.sh/install.sh that
+ * handles installing/making this program so hypothetically people could just
+ * download the git repo and do a "make install"
  *
  * Implement ASCII art, somehow. Look at wego's source code for ref.
  * Add wind direction, color, ...
+ * Toggle on/off for fahrenheit and celsius
+ * Some kind of interactivity for cursor? (i.e. highlight square we are on)
+ * Distant goal: make the location customizable with user input
  */
 
 int check_file(FILE *f);
@@ -106,7 +117,7 @@ int main()
 	pthread_t thread_id;
 	pthread_create(&thread_id, NULL, pthread_init_weather, NULL);
 
-	int num_day;
+	int num_day, rc, x, y;
 	time_t res = time(NULL);
 
 	num_day = retrieve_day(res);
@@ -114,6 +125,14 @@ int main()
 		perror("Failure in parsing date.");
 		exit(-1);
 	}
+
+	rc = system("./weather.sh");
+	if (rc != 0) {
+		fprintf(stderr, "Could not run shell script.\n");
+		exit(-1);
+	}
+
+	getmaxyx(stdscr, x, y);
 
 	initscr();
 	noecho();
@@ -127,7 +146,8 @@ int main()
 	attroff(A_BOLD);
 	printw("The weather for the next 3 days in ");
 	attron(A_REVERSE);
-	printw("DURHAM, NC");
+	printw("DURHAM, NC"); // TODO: Allow user to choose city/state they're in? 
+						  // Country?
 	attroff(A_REVERSE);
 
 	refresh();
@@ -135,28 +155,29 @@ int main()
 	
 	for (int i = 0; i < 3; num_day++, i++) {
 		if (i == 0) { // for first square on grid aka current day
-			mvwprintw(GRID[i], SQ_HEIGHT/6, SQ_WIDTH/6, "Today");
-			mvwprintw(GRID[i], (SQ_HEIGHT/6) + L_MARGIN, SQ_WIDTH/6, "%dF/%dC",
+			mvwprintw(grid[i].sub, x/6, y/6, "Today");
+			mvwprintw(grid[i].sub, (x/6) + L_MARGIN, y/6, "%dF/%dC",
 					temperature[i], convert_to_cel(temperature[i]));
-			mvwprintw(GRID[i], (SQ_HEIGHT/6) + (S_MARGIN * 2), SQ_WIDTH/6,
+			mvwprintw(grid[i].sub, (x/6.) + (S_MARGIN * 2) + 3, y/6,
 					"Chance of rain: %d%%", chance[i]);
-			mvwprintw(GRID[i], (SQ_HEIGHT/6) + (S_MARGIN * 3), SQ_WIDTH/6,
+			mvwprintw(grid[i].sub, (x/6.) + (S_MARGIN * 3) + 3, y/6,
 					"%s", forecast[i]);
-			mvwprintw(GRID[i], (SQ_HEIGHT/6) + (S_MARGIN * 5), SQ_WIDTH/6,
-					"High: %d, Low: %d", convert_to_fah(max[i]), convert_to_fah(min[i]));
+			mvwprintw(grid[i].sub, (x/6.) + (S_MARGIN * 5) + 3, y/6,
+					"High: %d, Low: %d", max[i], min[i]);
 		} else {
-			mvwprintw(GRID[i], SQ_HEIGHT/6, SQ_WIDTH / 6, "%s",
+			mvwprintw(grid[i].sub, x/6, y/ 6, "%s",
 					dict[num_day % NUMWEEK]);
-			mvwprintw(GRID[i], (SQ_HEIGHT/6) + L_MARGIN, SQ_WIDTH/6, "%dF/%dC",
+			mvwprintw(grid[i].sub, (x/6) + L_MARGIN, y/6, "%dF/%dC",
 					temperature[i], convert_to_cel(temperature[i]));
-			mvwprintw(GRID[i], (SQ_HEIGHT/6) + (S_MARGIN * 2), SQ_WIDTH/6,
+			mvwprintw(grid[i].sub, (x/6.) + (S_MARGIN * 2) + 3, y/6,
 					"Chance of rain: %d%%", chance[i]);
-			mvwprintw(GRID[i], (SQ_HEIGHT/6) + (S_MARGIN * 3), SQ_WIDTH/6,
+			mvwprintw(grid[i].sub, (x/6.) + (S_MARGIN * 3) + 3, y/6,
 					"%s", forecast[i]);
-			mvwprintw(GRID[i], (SQ_HEIGHT/6) + (S_MARGIN * 5), SQ_WIDTH/6,
-					"High: %d, Low: %d", convert_to_fah(max[i]), convert_to_fah(min[i]));
+			mvwprintw(grid[i].sub, (x/6.) + (S_MARGIN * 5) + 3, y/6,
+					"High: %d, Low: %d", max[i], min[i]);
 		}
-		wrefresh(GRID[i]);
+		wrefresh(grid[i].main);
+		wrefresh(grid[i].sub);
 	}
 
 	refresh();
@@ -170,7 +191,8 @@ int main()
 int check_file(FILE *stream) {
 	if (!stream) {
 		perror("Error: Unable to open file.");
-		return EXIT_FAILURE;
+		exit(1);
+		// return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;
 }
@@ -185,7 +207,8 @@ int retrieve_day(time_t result) {
 			}
 		}
 	} else {
-		perror("Time retrieval issue.");
+		fprintf(stderr, "Time retrieval issue.");
+		exit(-1);
 	}
 	return -1;
 }
@@ -197,20 +220,31 @@ void create_grid(void)
 
 	for (i = 0; i < 3; i++) {
 		startx = i * SQ_WIDTH;
-		GRID[i] = newwin(SQ_HEIGHT, SQ_WIDTH, starty, startx);
+
+		grid[i].main = newwin(SQ_HEIGHT, SQ_WIDTH, starty, startx);
+		grid[i].sub = newwin(SQ_HEIGHT-2, SQ_WIDTH-4, starty+1, startx+2);
+
+		wborder(grid[i].main, '|', '|', '-', '-', '+', '+', '+', '+');
+		// wborder(grid[i].sub, '|', '|', '-', '-', '+', '+', '+', '+');
+
+		// Questionable things are happening!?
+		refresh();
 	}
 
 	for (i = 0; i < 3; i++) {
 		// box(GRID[i], 0, 0);
-		wrefresh(GRID[i]);
+		wrefresh(grid[i].main);
+		wrefresh(grid[i].sub);
 	}
 }
 
 void destroy_grid(void) {
 	for (int i = 0; i < 3; i++) {
-		wborder(GRID[i], ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
-		// delwin does not delete borders, need to use wborder to handle cleanly
-		delwin(GRID[i]);
+		wborder(grid[i].main, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+		wborder(grid[i].sub, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+		// delwin does not delete borders, need to use wborder for cleanliness
+		delwin(grid[i].main);
+		delwin(grid[i].sub);
 	}
 }
 
@@ -221,7 +255,7 @@ void fill_temp(FILE *f){
 		temp = atoi(buf);
 		temperature[i] = temp;
 		i++;
-			}
+	}
 }
 
 void fill_fc(FILE *f){
@@ -241,7 +275,7 @@ void fill_chance(FILE *f) {
 		temp = atoi(buf);
 		chance[i] = temp;
 		i++;	
-			}
+	}
 }
 
 void fill_maxmin(FILE *f) {
@@ -258,6 +292,7 @@ void fill_maxmin(FILE *f) {
 	}
 }
 
+// Inaccurate. But I don't want floats to display temperatures, so...?
 int convert_to_cel(int x) {
 	return ((x - 32) / 1.8);
 }
