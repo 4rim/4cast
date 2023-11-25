@@ -1,5 +1,17 @@
 # 4cast
 
+## Installation
+
+Make sure to run **install.sh** *before* you run the binary:
+
+```
+sh install.sh && make
+```
+
+You may need to run the binary twice for the data files to be properly updated
+(bug? will need to look into this more). Don't be worried if all the values
+are null/0 the first time you run printscreen.
+
 4cast is a work-in-progress TUI weather app written in C and zsh script, held
 together by duct tape and sheer will. It uses tools such as `curl` and the
 ncurses library to retrieve data from various free weather API services, and to
