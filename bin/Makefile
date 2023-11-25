@@ -1,6 +1,6 @@
 CC=gcc
 LIBS=-lncurses -pthread
-CFLAGS=-Wall -Wextra -std=c11 -pedantic -ggdb
+CFLAGS=-Wall -Wextra -std=c99 -pedantic -ggdb
 
 printscreen: printscreen.o
 	${CC} -o $@ $< ${LIBS} ${CFLAGS}

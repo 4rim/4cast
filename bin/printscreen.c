@@ -38,7 +38,6 @@ const char *fc_path = "../txt/forecast.txt";
 const char *chance_path = "../txt/chance.txt";
 const char *maxmin_path = "../txt/maxmin.txt";
 
-// WINDOW *GRID[3];
 struct square grid[3];
 
 int temperature[3];
@@ -76,10 +75,8 @@ int convert_to_cel(int x);
 int convert_to_fah(int x);
 int scriptinit();
 
-void *pthread_init_weather(void *vargp)
+void *pthread_init_weather(void* vargp)
 {
-	pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-
 	FILE *f1 = fopen(temp_path, "r");
 	check_file(f1);
 
@@ -93,7 +90,6 @@ void *pthread_init_weather(void *vargp)
 	check_file(f4);
 
 	while(1) {
-		pthread_mutex_lock(&lock);
 		fill_temp(f1);
 		fill_fc(f2);
 		fill_chance(f3);
@@ -102,35 +98,30 @@ void *pthread_init_weather(void *vargp)
 		rewind(f2);
 		rewind(f3);
 		rewind(f4);
-		pthread_mutex_unlock(&lock);
-		sleep(10);
+		sleep(30);
 	}
 	
 	fclose(f1);
 	fclose(f2);
 	fclose(f3);
 	fclose(f4);
-	
-	return NULL;
 }
 
-int main()
+int main(int argc, char *argv[])
 {		
 	pthread_t thread_id;
 	pthread_create(&thread_id, NULL, pthread_init_weather, NULL);
 
-	int num_day, rc, x, y;
+	int num_day, x, y;
 	time_t res = time(NULL);
 
 	num_day = retrieve_day(res);
 	if (num_day == -1) {
-		perror("Failure in parsing date.");
+		fprintf(stderr, "Failure in parsing date.");
 		exit(-1);
 	}
 
-	rc = scriptinit();	
-	if (rc != 0)
-		exit(-1);
+	scriptinit();	
 
 	getmaxyx(stdscr, x, y);
 
@@ -144,11 +135,14 @@ int main()
 	attron(A_BOLD);
 	printw("%s.\n", dict[num_day]); // Prints current day based off of dict
 	attroff(A_BOLD);
+
 	printw("The weather for the next 3 days in ");
 	attron(A_REVERSE);
 	printw("DURHAM, NC"); // TODO: Allow user to choose city/state they're in? 
 						  // Country?
 	attroff(A_REVERSE);
+
+	printw("\nPress any key to exit.");
 
 	refresh();
 	create_grid();
@@ -181,9 +175,10 @@ int main()
 	}
 
 	refresh();
+	// TODO: window refreshes every time user presses 'r', and quits when
+	// user presses 'q'
 	getch(); // program exits when any key is pressed
 	pthread_cancel(thread_id);
-	// pthread_join(thread_id, NULL);
 	destroy_grid();
 	endwin();
 }
@@ -192,10 +187,9 @@ int check_file(FILE *stream)
 {
 	if (!stream) {
 		perror("Error: Unable to open file.");
-		exit(1);
-		// return EXIT_FAILURE;
+		exit(-1);
 	}
-	return EXIT_SUCCESS;
+	return 0;
 }
 
 int retrieve_day(time_t result)
@@ -244,7 +238,7 @@ void destroy_grid(void)
 {
 	for (int i = 0; i < 3; i++) {
 		wborder(grid[i].main, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
-		wborder(grid[i].sub, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+		// wborder(grid[i].sub, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
 		// delwin does not delete borders, need to use wborder for cleanliness
 		delwin(grid[i].main);
 		delwin(grid[i].sub);
