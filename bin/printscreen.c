@@ -74,8 +74,10 @@ void fill_chance(FILE *f);
 void fill_maxmin(FILE *f);
 int convert_to_cel(int x);
 int convert_to_fah(int x);
+int scriptinit();
 
-void *pthread_init_weather(void *vargp) {
+void *pthread_init_weather(void *vargp)
+{
 	pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 	FILE *f1 = fopen(temp_path, "r");
@@ -126,11 +128,9 @@ int main()
 		exit(-1);
 	}
 
-	rc = system("./weather.sh");
-	if (rc != 0) {
-		fprintf(stderr, "Could not run shell script.\n");
+	rc = scriptinit();	
+	if (rc != 0)
 		exit(-1);
-	}
 
 	getmaxyx(stdscr, x, y);
 
@@ -188,7 +188,8 @@ int main()
 	endwin();
 }
 
-int check_file(FILE *stream) {
+int check_file(FILE *stream)
+{
 	if (!stream) {
 		perror("Error: Unable to open file.");
 		exit(1);
@@ -197,7 +198,8 @@ int check_file(FILE *stream) {
 	return EXIT_SUCCESS;
 }
 
-int retrieve_day(time_t result) {
+int retrieve_day(time_t result)
+{
 	char *day;
 	if(result != (time_t)(-1)) {
 		day = strtok(asctime(gmtime(&result)), " ");
@@ -238,7 +240,8 @@ void create_grid(void)
 	}
 }
 
-void destroy_grid(void) {
+void destroy_grid(void)
+{
 	for (int i = 0; i < 3; i++) {
 		wborder(grid[i].main, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
 		wborder(grid[i].sub, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
@@ -248,7 +251,8 @@ void destroy_grid(void) {
 	}
 }
 
-void fill_temp(FILE *f){
+void fill_temp(FILE *f)
+{
 	char buf[4];
 	int temp, i = 0;
 	while (fgets(buf, sizeof(buf), f) && i < 3) {
@@ -258,7 +262,8 @@ void fill_temp(FILE *f){
 	}
 }
 
-void fill_fc(FILE *f){
+void fill_fc(FILE *f)
+{
 	char buf[60];
 	int i = 0;
 	while (fgets(buf, sizeof(buf), f) && i < 3) {
@@ -268,7 +273,8 @@ void fill_fc(FILE *f){
 	}
 }
 
-void fill_chance(FILE *f) {
+void fill_chance(FILE *f)
+{
 	char buf[4];
 	int temp, i = 0;
 	while (fgets(buf, sizeof(buf), f) && i < 3) {
@@ -278,7 +284,8 @@ void fill_chance(FILE *f) {
 	}
 }
 
-void fill_maxmin(FILE *f) {
+void fill_maxmin(FILE *f)
+{
 	char buf[6];
 	int temp, i = 0;
 	while (fgets(buf, sizeof(buf), f) && i < 6) {
@@ -293,10 +300,23 @@ void fill_maxmin(FILE *f) {
 }
 
 // Inaccurate. But I don't want floats to display temperatures, so...?
-int convert_to_cel(int x) {
+int convert_to_cel(int x)
+{
 	return ((x - 32) / 1.8);
 }
 
-int convert_to_fah(int x) {
+int convert_to_fah(int x)
+{
 	return ((x * 1.8) + 32);
+}
+
+int scriptinit(void)
+{
+	int rc;
+	rc = system("./weather.sh");
+	if (rc != 0) {
+		fprintf(stderr, "Could not run shell script.\n");
+		return -1;
+	}
+	return 0;
 }
