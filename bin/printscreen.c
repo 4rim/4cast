@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <locale.h>
 
 #define NUMWEEK 7
 #define SQ_HEIGHT 18
@@ -108,7 +109,7 @@ void *pthread_init_weather(void* vargp)
 }
 
 int main(int argc, char *argv[])
-{		
+{	
 	pthread_t thread_id;
 	pthread_create(&thread_id, NULL, pthread_init_weather, NULL);
 
@@ -177,7 +178,8 @@ int main(int argc, char *argv[])
 	refresh();
 	// TODO: window refreshes every time user presses 'r', and quits when
 	// user presses 'q'
-	getch(); // program exits when any key is pressed
+	// getch(); // program exits when any key is pressed
+	getch();
 	pthread_cancel(thread_id);
 	destroy_grid();
 	endwin();
