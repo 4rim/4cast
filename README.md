@@ -22,9 +22,8 @@ ncurses library to retrieve data from various free weather API services, and to
 display it as a forecast on your console. 
 
 This program is inspired by [wego](https://github.com/schachmat/wego) and its
-amazing command-line forecast written in Rust,
-[wttr.in](https://github.com/chubin/wttr.in). I highly recommend checking them
-out. 
+amazing command-line forecast, [wttr.in](https://github.com/chubin/wttr.in). I
+highly recommend checking them out. 
 
 The to-dos with the most priority are:
 
