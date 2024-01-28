@@ -1,5 +1,10 @@
 # 4cast
 
+## Dependencies
+
+You will need [jq](https://github.com/jqlang/jq), which is a command-line tool
+for parsing JSON data files, akin to "`sed`, `awk`, and friends".
+
 ## Installation
 
 Make sure to run **install.sh** *before* you run the binary:

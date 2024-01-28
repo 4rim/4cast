@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 
 	printw("Today is ");
 	attron(A_BOLD);
-	printw("%s.\n", dict[num_day]); // Prints current day based off of dict
+	printw("%s.\n", dict[num_day].name); // Prints current day based off of dict
 	attroff(A_BOLD);
 
 	printw("The weather for the next 3 days in ");
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 					"High: %d, Low: %d", max[i], min[i]);
 		} else {
 			mvwprintw(grid[i].sub, x/6, y/ 6, "%s",
-					dict[num_day % NUMWEEK]);
+					dict[num_day % NUMWEEK].name);
 			mvwprintw(grid[i].sub, (x/6) + L_MARGIN, y/6, "%dF/%dC",
 					temperature[i], convert_to_cel(temperature[i]));
 			mvwprintw(grid[i].sub, (x/6.) + (S_MARGIN * 2) + 3, y/6,
